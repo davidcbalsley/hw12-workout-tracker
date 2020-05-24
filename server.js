@@ -25,6 +25,11 @@ app.get("/exercise", (req, res) => {
     res.sendFile(path.join(__dirname, 'public/exercise.html'));
   });
 
+// For /stats route, serve stats.html
+app.get("/stats", (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/stats.html'));
+  });
+
 // Get all workouts
 // GET: /api/workouts
 app.get("/api/workouts", (req, res) => {
@@ -48,6 +53,19 @@ app.post("/api/workouts", (req, res) => {
             res.json(err);
         });
 });
+
+// Add an exercise to a workout
+// PUT: /api/workouts/id
+app.put("/api/workouts/:id", ( { body }, res) => {
+    db.Exercise.create(body)
+        .then(({ _id }) => db.Workout.findOneAndUpdate(mongojs.ObjectId(req.params.id), { $push: { exercise: _id } }, { new: true }))
+        .then(dbWorkout => {
+            res.json(dbWorkout);
+        })
+        .catch(err => {
+            res.json(err);
+        });
+})
 
 // Get all exercises for a given workout id
 // GET: /exercises/:id
