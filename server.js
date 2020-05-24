@@ -1,6 +1,7 @@
 const express = require("express");
 const logger = require("morgan");
 const mongoose = require("mongoose");
+const path = require("path");
 
 const PORT = process.env.PORT || 3000;
 
@@ -18,6 +19,11 @@ app.use(express.static("public"));
 mongoose.connect(process.env.MONGODB_URI || "mongodb://localhost/populatedb", { useNewUrlParser: true });
 
 // Define routes here
+
+// For /exercise route, serve exercise.html
+app.get("/exercise", (req, res) => {
+    res.sendFile(path.join(__dirname, 'public/exercise.html'));
+  });
 
 // Get all workouts
 // GET: /api/workouts
@@ -42,6 +48,20 @@ app.post("/api/workouts", (req, res) => {
             res.json(err);
         });
 });
+
+// Get all exercises for a given workout id
+// GET: /exercises/:id
+/*
+app.get("/exercises/?id=:id", (req, res) => {
+    db.Workout.findOne(mongojs.ObjectId(req.params.id), (err, { exercises }) => {
+        if (err) {
+            res.send(err);
+        } else {
+            res.json(exercises);
+        }
+    });
+});
+*/
 
 // Start the server
 app.listen(PORT, () => {
