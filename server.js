@@ -58,9 +58,16 @@ app.post("/api/workouts", (req, res) => {
 
 // Add an exercise to a workout
 // PUT: /api/workouts/id
-app.put("/api/workouts/:id", (req, res) => {
+app.put("/api/workouts/:id", (req, res) => {   
+    const currentDuration = req.body.duration;     // The duration of the current exercise
+    
     db.Exercise.create(req.body)
+        // Add the exercise to the workout specified by req.params.id
         .then(({ _id }) => db.Workout.findOneAndUpdate({ _id: mongojs.ObjectId(req.params.id) }, { $push: { exercises: _id } }, { new: true }))
+        
+        // Update the totalDuration for the workout based on the duration of the new exercise
+        .then(dbWorkout => db.Workout.findOneAndUpdate({ _id: mongojs.ObjectId(req.params.id) }, { $set: { totalDuration: currentDuration + dbWorkout.totalDuration} }))
+       
         .then(dbWorkout => {
             res.json(dbWorkout);
         })
@@ -69,19 +76,18 @@ app.put("/api/workouts/:id", (req, res) => {
         });
 })
 
-// Get all exercises for a given workout id
-// GET: /exercises/:id
-/*
-app.get("/exercises/?id=:id", (req, res) => {
-    db.Workout.findOne(mongojs.ObjectId(req.params.id), (err, { exercises }) => {
-        if (err) {
-            res.send(err);
-        } else {
-            res.json(exercises);
-        }
-    });
+// Get all workouts in a range
+// GET: /api/workouts/range
+app.get("/api/workouts/range", (req, res) => {
+    db.Workout.find({})
+        .populate("exercises")
+        .then(dbWorkouts => {
+            res.json(dbWorkouts);
+        })
+        .catch(err => {
+            res.json(err);
+        });
 });
-*/
 
 // Start the server
 app.listen(PORT, () => {
